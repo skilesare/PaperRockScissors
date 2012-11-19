@@ -5,7 +5,7 @@
 
   app = express();
 
-  _contentDirectory = "Content";
+  _contentDirectory = "Server/Content";
 
   sendIndex = function(req, res) {
     return res.sendfile(_contentDirectory + "/index.html");
@@ -14,6 +14,12 @@
   app.get('/', sendIndex);
 
   app.get('/index.html', sendIndex);
+
+  app.use('/styles', express["static"](_contentDirectory + '/styles'));
+
+  app.use('/scripts', express["static"](_contentDirectory + '/scripts'));
+
+  app.use('/img', express["static"](_contentDirectory + '/img'));
 
   app.listen(3001);
 
