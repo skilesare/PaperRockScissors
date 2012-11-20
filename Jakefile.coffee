@@ -18,7 +18,7 @@ catch e
 	console.log 'uglify-js missing.  run "npm install uglify-js" from repo Directory'
 
 try
-	nodeunit = require 'nodeunit'
+	nodeunit = (require 'nodeunit').reporters["default"]
 catch e
 	console.log 'nodeunit missing.  run "npm install nodeunit" from repo Directory'
 
@@ -28,8 +28,19 @@ catch e
 	console.log 'less is missing.  run "npm install less" from repo Directory'
 
 desc 'build'
-task 'build', ['compile-server-coffee','compile-server-less','compile-client-coffee'], (params)->
-	console.log('test')
+task 'build', ['compile','test'], (params)->
+	console.log('building')
+	complete()
+
+desc 'compile'
+task 'compile', ['compile-server-coffee','compile-server-less','compile-servertest-coffee','compile-client-coffee'], (params)->
+	console.log('compiling')
+	complete()
+
+desc 'test'
+task 'test', ['compile','testNode'], (params)->
+	console.log('testingb')
+	complete()
 
 desc 'compile-server-coffee'
 task 'compile-server-coffee', [], (params)->
@@ -58,6 +69,27 @@ task 'compile-server-coffee', [], (params)->
 	js = coffee.compile filestring
 	console.log 'compiling cofeescript temp_app.coffee to app.js'
 	fs.writeFileSync path.normalize('app.js'), js	
+	complete()
+
+desc 'compile-servertest-coffee'
+task 'compile-servertest-coffee', [], (params)->
+	
+
+	#Getting the included Coffee files
+	list = new jake.FileList()
+	list.include ls('Server/Script/_*test.coffee')
+	
+	console.log "files to process:" + list.toArray()
+	filestring = ""
+	arglist = ""
+	firstfile = ""
+	#combine files
+	for i,idx in list.toArray()
+		console.log 'compiling:' + i
+		thisFile = ""
+		thisFile = fs.readFileSync(i, 'utf8') 	
+		js = coffee.compile thisFile
+		fs.writeFileSync path.normalize(i.replace('.coffee','.js')), js	
 	complete()
 
 desc 'compile-server-less'
@@ -119,3 +151,21 @@ task 'compile-client-coffee', [], (params)->
 	console.log 'compiling cofeescript client app.js'
 	fs.writeFileSync path.normalize('Server/Content/scripts/app.js'), js	
 	complete()
+
+desc "Test server code"
+task "testNode", ['compile','compile-client-coffee'], ->
+	console.log('testing')
+	console.log(nodeTestFiles())
+	nodeunit.run nodeTestFiles(), null, (failures) ->
+		if (failures) 
+			fail("Tests failed")
+		complete()
+	
+
+
+nodeTestFiles = () ->
+	testFiles = new jake.FileList()
+	testFiles.include("Server/Script/_*_test.js")
+	testFiles = testFiles.toArray()
+	return testFiles
+
