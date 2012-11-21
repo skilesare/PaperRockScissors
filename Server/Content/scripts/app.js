@@ -1,5 +1,5 @@
 (function() {
-  var PRS;
+  var GameEngine, PRS;
 
   PRS = (function() {
 
@@ -15,6 +15,28 @@
     };
 
     return PRS;
+
+  })();
+
+  GameEngine = (function() {
+
+    function GameEngine() {}
+
+    GameEngine.prototype.move = function(gameID, moveCode) {
+      return $.ajax({
+        url: window.constants.BaseURL + "/api_v1/move",
+        cache: false,
+        type: 'post',
+        data: {
+          gameID: gameID,
+          moveCode: moveCode
+        },
+        dataType: 'json',
+        success: function(data) {}
+      });
+    };
+
+    return GameEngine;
 
   })();
 

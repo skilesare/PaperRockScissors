@@ -1,19 +1,17 @@
 http = require('http')
 express = require('express')
+prsServer = new PRSServer()
 app = express()
 server = http.createServer(app)
 
-
 _contentDirectory = "Server/Content"
-
-
-
 
 
 exports.start = (port, callback) -> 
 
 	app.get '/', sendIndex
 	app.get '/index.html', sendIndex
+	app.post '/move', prsServer.move
 	app.use('/styles', express.static(_contentDirectory + '/styles'))
 	app.use('/scripts', express.static(_contentDirectory + '/scripts'))
 	app.use('/img', express.static(_contentDirectory + '/img'))

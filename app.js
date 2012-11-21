@@ -1,9 +1,30 @@
 (function() {
-  var app, express, http, sendIndex, server, _contentDirectory;
+  var PRSServer, app, express, http, prsServer, sendIndex, server, _contentDirectory;
+
+  PRSServer = (function() {
+
+    function PRSServer() {
+      var x;
+      x = 1;
+    }
+
+    PRSServer.prototype.move = function(req, res) {
+      return res.json({
+        result: true
+      });
+    };
+
+    return PRSServer;
+
+  })();
+
+  exports.PRSServer = PRSServer;
 
   http = require('http');
 
   express = require('express');
+
+  prsServer = new PRSServer();
 
   app = express();
 
@@ -14,6 +35,7 @@
   exports.start = function(port, callback) {
     app.get('/', sendIndex);
     app.get('/index.html', sendIndex);
+    app.post('/move', prsServer.move);
     app.use('/styles', express["static"](_contentDirectory + '/styles'));
     app.use('/scripts', express["static"](_contentDirectory + '/scripts'));
     app.use('/img', express["static"](_contentDirectory + '/img'));

@@ -27,18 +27,27 @@ try
 catch e
 	console.log 'less is missing.  run "npm install less" from repo Directory'
 
+SUPPORTED_BROWSERS = [
+		"IE 8.0",
+		"IE 9.0",
+		"Firefox 16.0",
+		"Chrome 23.0",
+		"Mac Safari 6.0",
+		"iOS Safari 6.0"
+	]
+
 desc 'build'
 task 'build', ['compile','test'], (params)->
 	console.log('building')
 	complete()
 
 desc 'compile'
-task 'compile', ['compile-server-coffee','compile-server-less','compile-servertest-coffee','compile-client-coffee'], (params)->
+task 'compile', ['compile-server-coffee','compile-server-less','compile-servertest-coffee','compile-client-coffee','compile-clienttest-coffee'], (params)->
 	console.log('compiling')
 	complete()
 
 desc 'test'
-task 'test', ['compile','testNode'], (params)->
+task 'test', ['compile','testNode','testClient'], (params)->
 	console.log('testingb')
 	complete()
 
@@ -112,7 +121,7 @@ task 'compile-server-less', [], (params)->
 		filestring += thisFile
 		#fs.writeFileSync path.normalize('app/Scripts/' + idx + '.coffee'),thisFile
 
-	parser = new(less.Parser);
+	parser = new(less.Parser)
 
 	parser.parse filestring, (err, tree) ->
 		if err
@@ -152,6 +161,27 @@ task 'compile-client-coffee', [], (params)->
 	fs.writeFileSync path.normalize('Server/Content/scripts/app.js'), js	
 	complete()
 
+desc 'compile-clienttest-coffee'
+task 'compile-clienttest-coffee', [], (params)->
+	
+
+	#Getting the included Coffee files
+	list = new jake.FileList()
+	list.include ls('Web/Script/_*_test.coffee')
+	
+	console.log "files to process:" + list.toArray()
+	filestring = ""
+	arglist = ""
+	firstfile = ""
+	#combine files
+	for i,idx in list.toArray()
+		console.log 'compiling:' + i
+		thisFile = ""
+		thisFile = fs.readFileSync(i, 'utf8') 	
+		js = coffee.compile thisFile
+		fs.writeFileSync path.normalize(i.replace('.coffee','.js')), js	
+	complete()
+
 desc "Test server code"
 task "testNode", ['compile','compile-client-coffee'], ->
 	console.log('testing')
@@ -160,12 +190,89 @@ task "testNode", ['compile','compile-client-coffee'], ->
 		if (failures) 
 			fail("Tests failed")
 		complete()
+
+desc("Start Testacular server for testing")
+task "testacular", () ->
+	sh "node", ["node_modules/testacular/bin/testacular", "start", "testacular.conf.js"],	"Could not start Testacular server", complete
+,{async: true}
+
+
+desc("Test client code")
+task "testClient", ['compile'],  ->
+	config = {}
+
+	output = ""
+	oldStdout = process.stdout.write
+	process.stdout.write = (data) ->
+		output += data
+		oldStdout.apply(this, arguments)
+	
+
+	require("testacular/lib/runner").run config, (exitCode) ->
+		process.stdout.write = oldStdout
+
+		if (exitCode) 
+			fail("Client tests failed (to start server, run 'jake testacular')")
+		browserMissing = false
+		SUPPORTED_BROWSERS.forEach (browser) ->
+			browserMissing = checkIfBrowserTested(browser, output) || browserMissing
+		
+		#if (browserMissing && !process.env.loose) 	fail("Did not test all supported browsers (use 'loose=true' to suppress error)")
+		console.log output
+		if (output.indexOf("TOTAL: 0 SUCCESS") isnt -1) 
+			fail("Client tests did not run!")
+
+		complete()
+	
+,{async: true}
+
+checkIfBrowserTested = (browser, output)  ->
+	missing = output.indexOf(browser + ": Executed") is -1
+	if (missing) 
+		console.log(browser + " was not tested!")
+	return missing
 	
 
 
 nodeTestFiles = () ->
 	testFiles = new jake.FileList()
-	testFiles.include("Server/Script/_*_test.js")
+	ls('Server/Script/_*_test.js').forEach (file)->
+		testFiles.include(file)
+	
 	testFiles = testFiles.toArray()
 	return testFiles
+
+
+sh = (command, args, errorMessage, callback) ->
+		console.log("> " + command + " " + args.join(" "))
+
+		# Not using jake.createExec as it adds extra line-feeds into output as of v0.3.7
+		child = require("child_process").spawn(command, args, { stdio: "pipe" })
+
+		# redirect stdout
+		stdout = ""
+		child.stdout.setEncoding("utf8")
+		child.stdout.on "data", (chunk) ->
+			stdout += chunk
+			process.stdout.write(chunk)
+		
+
+		# redirect stderr
+		stderr = ""
+		child.stderr.setEncoding("utf8")
+		child.stderr.on "data", (chunk) ->
+			stderr += chunk
+			process.stderr.write(chunk)
+		
+
+		# handle process exit
+		child.on "exit", (exitCode) ->
+			if (exitCode isnt 0) 
+				fail(errorMessage)
+		
+		child.on "close",  ->
+			# 'close' event can happen after 'exit' event
+			callback(stdout, stderr)
+		
+	
 
