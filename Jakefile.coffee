@@ -200,7 +200,7 @@ task "testacular", () ->
 desc("Test client code")
 task "testClient", ['compile'],  ->
 	config = {}
-
+	console.log "calling testclient"
 	#start server for testing
 	server = require("./app.js")
 	PORT = 3001
@@ -224,11 +224,13 @@ task "testClient", ['compile'],  ->
 				browserMissing = checkIfBrowserTested(browser, output) || browserMissing
 			
 			#if (browserMissing && !process.env.loose) 	fail("Did not test all supported browsers (use 'loose=true' to suppress error)")
-			console.log output
+			
 			if (output.indexOf("TOTAL: 0 SUCCESS") isnt -1) 
 				fail("Client tests did not run!")
 
+
 			server.stop ->
+				console.log "calling stop"
 				complete()
 	
 ,{async: true}

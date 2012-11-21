@@ -2,8 +2,7 @@ class GameEngine
 	constructor: () ->
 		# ...
 	move: (gameID, moveCode, moveSuccess, moveError) ->
-		#post move to the server
-		console.log "posting move"
+		#post move to the server		
 		$.ajax
 			url: window.prs.constants.BaseURL + "/api_v1/move"
 			cache: false

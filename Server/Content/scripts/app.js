@@ -31,7 +31,6 @@
     function GameEngine() {}
 
     GameEngine.prototype.move = function(gameID, moveCode, moveSuccess, moveError) {
-      console.log("posting move");
       return $.ajax({
         url: window.prs.constants.BaseURL + "/api_v1/move",
         cache: false,

@@ -9,14 +9,10 @@ describe "Game Engine", ->
 		moveExecuted = false
 
 		runs ->
-			debugger
-			console.log "calling move"
 			gameEngine.move gameID, MoveCodes.paper, (data) ->
-
-				console.log JSON.stringify data
 				moveExecuted = true
 			, (err, des) ->
-				console.log "move function failed" + JSON.stringify(err)
+				x=1
 
 		waitsFor ->
 			return moveExecuted

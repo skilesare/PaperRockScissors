@@ -12,12 +12,11 @@
       gameID = "";
       moveExecuted = false;
       runs(function() {
-        debugger;        console.log("calling move");
         return gameEngine.move(gameID, MoveCodes.paper, function(data) {
-          console.log(JSON.stringify(data));
           return moveExecuted = true;
         }, function(err, des) {
-          return console.log("move function failed" + JSON.stringify(err));
+          var x;
+          return x = 1;
         });
       });
       waitsFor(function() {
