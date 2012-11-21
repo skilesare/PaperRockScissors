@@ -1,5 +1,5 @@
 (function() {
-  var BASE_URL, PORT, assert, fs, http, httpGet, server;
+  var BASE_URL, PORT, assert, fs, http, httpGet, request, server;
 
   server = require("../../app.js");
 
@@ -8,6 +8,8 @@
   fs = require("fs");
 
   assert = require("assert");
+
+  request = require("request");
 
   PORT = 3001;
 
@@ -29,19 +31,11 @@
 
   httpGet = function(url, callback) {
     return server.start(PORT, function() {
-      var request;
-      request = http.get(url);
-      return request.on("response", function(response) {
-        var receivedData;
-        receivedData = "";
-        response.setEncoding("utf8");
-        response.on("data", function(chunk) {
-          return receivedData += chunk;
-        });
-        return response.on("end", function() {
-          return server.stop(function() {
-            return callback(response, receivedData);
-          });
+      return request.get(BASE_URL, function(err, res, body) {
+        return server.stop(function() {
+          if (!err) {
+            return callback(res, body);
+          }
         });
       });
     });

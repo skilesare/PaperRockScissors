@@ -201,28 +201,35 @@ desc("Test client code")
 task "testClient", ['compile'],  ->
 	config = {}
 
-	output = ""
-	oldStdout = process.stdout.write
-	process.stdout.write = (data) ->
-		output += data
-		oldStdout.apply(this, arguments)
-	
+	#start server for testing
+	server = require("./app.js")
+	PORT = 3001
 
-	require("testacular/lib/runner").run config, (exitCode) ->
-		process.stdout.write = oldStdout
+	server.start PORT, ->
 
-		if (exitCode) 
-			fail("Client tests failed (to start server, run 'jake testacular')")
-		browserMissing = false
-		SUPPORTED_BROWSERS.forEach (browser) ->
-			browserMissing = checkIfBrowserTested(browser, output) || browserMissing
+		output = ""
+		oldStdout = process.stdout.write
+		process.stdout.write = (data) ->
+			output += data
+			oldStdout.apply(this, arguments)
 		
-		#if (browserMissing && !process.env.loose) 	fail("Did not test all supported browsers (use 'loose=true' to suppress error)")
-		console.log output
-		if (output.indexOf("TOTAL: 0 SUCCESS") isnt -1) 
-			fail("Client tests did not run!")
 
-		complete()
+		require("testacular/lib/runner").run config, (exitCode) ->
+			process.stdout.write = oldStdout
+
+			if (exitCode) 
+				fail("Client tests failed (to start server, run 'jake testacular')")
+			browserMissing = false
+			SUPPORTED_BROWSERS.forEach (browser) ->
+				browserMissing = checkIfBrowserTested(browser, output) || browserMissing
+			
+			#if (browserMissing && !process.env.loose) 	fail("Did not test all supported browsers (use 'loose=true' to suppress error)")
+			console.log output
+			if (output.indexOf("TOTAL: 0 SUCCESS") isnt -1) 
+				fail("Client tests did not run!")
+
+			server.stop ->
+				complete()
 	
 ,{async: true}
 

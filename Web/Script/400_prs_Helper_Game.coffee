@@ -1,17 +1,21 @@
 class GameEngine
 	constructor: () ->
 		# ...
-	move: (gameID, moveCode) ->
+	move: (gameID, moveCode, moveSuccess, moveError) ->
 		#post move to the server
+		console.log "posting move"
 		$.ajax
-			url: window.constants.BaseURL + "/api_v1/move"
+			url: window.prs.constants.BaseURL + "/api_v1/move"
 			cache: false
-			type: 'post'
+			type: 'POST'
 			data:
 				gameID: gameID
 				moveCode: moveCode
 			dataType: 'json'
 			success: (data)->
-				#proc response
+				moveSuccess(data) if moveSuccess?
+			error: (err,desc) ->
+				moveError(err,desc) if moveError?
 
+window.prs.GameEngine = GameEngine
 	

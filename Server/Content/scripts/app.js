@@ -1,5 +1,11 @@
 (function() {
-  var GameEngine, PRS;
+  var GameEngine, MoveCodes, PRS;
+
+  window.prs = {};
+
+  window.prs.constants = {};
+
+  window.prs.constants.BaseURL = "http://localhost:3001";
 
   PRS = (function() {
 
@@ -18,27 +24,49 @@
 
   })();
 
+  window.prs.PRS = PRS;
+
   GameEngine = (function() {
 
     function GameEngine() {}
 
-    GameEngine.prototype.move = function(gameID, moveCode) {
+    GameEngine.prototype.move = function(gameID, moveCode, moveSuccess, moveError) {
+      console.log("posting move");
       return $.ajax({
-        url: window.constants.BaseURL + "/api_v1/move",
+        url: window.prs.constants.BaseURL + "/api_v1/move",
         cache: false,
-        type: 'post',
+        type: 'POST',
         data: {
           gameID: gameID,
           moveCode: moveCode
         },
         dataType: 'json',
-        success: function(data) {}
+        success: function(data) {
+          if (moveSuccess != null) {
+            return moveSuccess(data);
+          }
+        },
+        error: function(err, desc) {
+          if (moveError != null) {
+            return moveError(err, desc);
+          }
+        }
       });
     };
 
     return GameEngine;
 
   })();
+
+  window.prs.GameEngine = GameEngine;
+
+  MoveCodes = {
+    paper: "p",
+    rock: "r",
+    scisors: "s"
+  };
+
+  window.prs.MoveCodes = MoveCodes;
 
   setTimeout(function() {
     return $(function() {

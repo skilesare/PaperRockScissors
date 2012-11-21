@@ -3,6 +3,7 @@ server = require("../../app.js")
 http = require("http")
 fs = require("fs")
 assert = require("assert")
+request = require("request")
 
 #var TEST_HOME_PAGE = "generated/test/testHome.html"
 #var TEST_404_PAGE = "generated/test/test404.html"
@@ -24,16 +25,7 @@ httpGet = (url, callback) ->
 	
 	server.start PORT, () ->
 		
-		request = http.get(url);
-		request.on "response", (response) ->
-			
-			receivedData = "";
-			response.setEncoding("utf8")
-
-			response.on "data", (chunk) ->
-				receivedData += chunk
-			
-			response.on "end", ->
-				
-				server.stop ->
-					callback(response, receivedData)
+		request.get BASE_URL, (err, res, body) ->
+			server.stop ->
+				if !err        		
+					callback(res, body)

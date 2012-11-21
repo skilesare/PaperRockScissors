@@ -5,4 +5,7 @@ class PRS
 		@testObject = "test"
 	init: ->
 		ko.applyBindings(@)
-	
+
+window.prs.PRS = PRS
+
+

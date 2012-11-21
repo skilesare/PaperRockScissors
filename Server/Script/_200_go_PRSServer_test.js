@@ -1,5 +1,5 @@
 (function() {
-  var BASE_URL, PORT, assert, fs, http, httpPost, request, server;
+  var BASE_URL, PORT, assert, fs, http, httpGet, request, server;
 
   server = require("../../app.js");
 
@@ -13,7 +13,7 @@
 
   PORT = 3001;
 
-  BASE_URL = "http://localhost:" + PORT + "/move";
+  BASE_URL = "http://localhost:" + PORT + "/api_v1/move";
 
   exports.tearDown = function(done) {
     return done();
@@ -22,7 +22,7 @@
   exports.test_servesMove = function(test) {
     var expectedData;
     expectedData = true;
-    return httpPost(BASE_URL, function(response, responseData) {
+    return httpGet(BASE_URL, function(response, responseData) {
       var responseJSON;
       responseJSON = JSON.parse(responseData);
       test.equals(200, response.statusCode, "status code");
@@ -31,12 +31,14 @@
     });
   };
 
-  httpPost = function(url, callback) {
+  httpGet = function(url, callback) {
     return server.start(PORT, function() {
       return request.post(BASE_URL, function(err, res, body) {
-        if (!err) {
-          return callback(res, body);
-        }
+        return server.stop(function() {
+          if (!err) {
+            return callback(res, body);
+          }
+        });
       });
     });
   };
